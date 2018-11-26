@@ -1,0 +1,138 @@
+class Calc extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      currentNumber: '0',
+      display: [],
+ 
+      numbers: [
+        'zero',
+        'one',
+        'two',
+        'three',
+        'four',
+        'five',
+        'six',
+        'seven',
+        'eight',
+        'nine'
+      ]
+    };
+  }
+  
+  componentDidUpdate(prevState) {
+    if (this.state.currentNumber !== prevState.currentNumber) {
+      this.currentNumberChangeHandle();
+    }
+  }
+  
+  currentNumberChangeHandle = () => {
+    const number = this.state.currentNumber;
+    if (number[0] === '0' && number.length > 1) {
+      this.setState({ currentNumber: number.slice(1) });
+    }
+  };
+
+  calcActionHandle = action => {
+    if (!['+', '-', '*', '/'].includes(action)) return;
+    const display = this.state.display;
+    const currentNumber = this.state.currentNumber;
+    if (display.length > 1 && (currentNumber === '0' || currentNumber === '')) {
+      display[display.length - 1] = action;
+      this.setState({
+        display
+      });
+    } else {
+      this.setState({
+        display: [...display, currentNumber, action],
+        currentNumber: ''
+      });
+    }
+  };
+
+  calcHandle = () => {
+    const formula = [...this.state.display, this.state.currentNumber];
+    if (!this.isFormulaValid(formula)) return;
+    const answer = eval(formula.join(' '));
+    
+    this.setState({ display: [], currentNumber: '' + answer });
+  };
+
+  isFormulaValid = formula => {
+    let i = 0;
+    while (i + 1 < formula.length) {
+      if (!parseInt(formula[i])) {
+        return false;
+      }
+      i++;
+      if (!['+', '-', '*', '/'].includes(formula[i])) {
+        return false;
+      }
+      i++;
+    }
+    return parseInt(formula[i]);
+  };
+
+  calcDecimalHandle = () => {
+    if (this.state.currentNumber.includes('.')) return;
+    this.setState({
+      currentNumber: this.state.currentNumber + '.'
+    });
+  };
+
+  render() {
+    return (
+      <div class="calc">
+        <div id="display-total">
+          {this.state.display.join(' ')} {this.state.currentNumber}
+        </div>
+        <div id="display"> {this.state.currentNumber}</div>
+        <div class="calc-keys">
+          <button id="add" onClick={() => this.calcActionHandle('+')}>
+            +
+          </button>
+          <button id="subtract" onClick={() => this.calcActionHandle('-')}>
+            -
+          </button>
+          <button id="multiply" onClick={() => this.calcActionHandle('*')}>
+            x
+          </button>
+          <button id="divide" onClick={() => this.calcActionHandle('/')}>
+            /
+          </button>
+          {this.state.numbers.map((number, index) => {
+            return (
+              <button
+                id={`${number}`}
+                onClick={() => {
+                  const display = this.state.display;
+                  this.setState({
+                    currentNumber: this.state.currentNumber + index
+                  });
+                }}
+              >
+                {index}
+              </button>
+            );
+          })}
+          <button id="equals" onClick={() => this.calcHandle()}>
+            =
+          </button>
+          <button id="decimal" onClick={() => this.calcDecimalHandle()}>
+            .
+          </button>
+          <button
+            id="clear"
+            onClick={() => {
+              this.setState({ display: [], currentNumber: '0' });
+            }}
+          >
+            AC
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
+ReactDOM.render(<Calc />, document.getElementById('app'));
